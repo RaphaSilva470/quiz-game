@@ -46,7 +46,6 @@ def root():
 def health_check():
     return {"status": "ok"}
 
-# Configurar esquema de segurança no OpenAPI (para mostrar botão Authorize)
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
