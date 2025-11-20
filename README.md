@@ -23,7 +23,7 @@ O objetivo final do sistema é combinar entretenimento e aprendizado, oferecendo
 
 ## 3. Possíveis Tecnologias Utilizadas
 - **Front-end:** React  
-- **Back-end:** Python 3.13, FastAPI, SQLAlchemy, PostgreSQL, Passlib (bcrypt), Pydantic, Uvicorn
+- **Back-end:** Python 3.13, FastAPI, SQLAlchemy, Passlib + Argon2, Pydantic, Python-JOSE
 
 ## 4.Como Rodar o Backend
 
@@ -35,8 +35,8 @@ cd quiz_backend
 python -m venv .venv
 source .venv/bin/activate   # Mac/Linux
 .venv\Scripts\activate      # Windows
-pip install fastapi uvicorn sqlalchemy psycopg2-binary passlib[bcrypt] pydantic
-python populate_db.py
+pip install -r requirements.txt
+python scripts/seed_questions.py
 uvicorn app.main:app --reload
 
  
