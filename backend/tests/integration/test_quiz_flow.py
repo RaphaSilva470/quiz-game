@@ -29,7 +29,7 @@ class TestQuizFlow:
     def test_should_complete_full_quiz_workflow(
         self, client, auth_headers, quiz_questions
     ):
-        """Fluxo completo: iniciar → responder → finalizar → verificar histórico e ranking"""
+        """Fluxo completo: iniciar, responder,  finalizar , verificar histórico e ranking"""
         
         start_response = client.post(
             "/api/quiz/start",
