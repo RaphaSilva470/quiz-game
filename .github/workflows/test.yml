@@ -86,3 +86,13 @@ jobs:
         npm test
       env:
         CI: true
+        
+    - name: Upload Frontend coverage to Codecov
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        files: ./frontend/coverage/lcov.info
+        flags: frontend
+        name: frontend-coverage-${{ matrix.os }}
+        fail_ci_if_error: false
+        
