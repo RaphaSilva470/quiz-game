@@ -91,3 +91,43 @@ class TestGetUserByEmail:
         
         assert found_user is not None
         assert found_user.email == existing_user.email
+
+
+class TestAuthenticate:
+    """Testes para AuthService.authenticate"""
+    
+    def test_should_authenticate_user_with_correct_password(self, db_session):
+        """Deve autenticar usuário com senha correta"""
+        from app.utils.security import hash_password
+        
+        user_data = UserRegister(
+            username="authuser",
+            email="auth@test.com",
+            password="senha123"
+        )
+        user = AuthService.create_user(db_session, user_data)
+        
+        authenticated = AuthService.authenticate(db_session, "auth@test.com", "senha123")
+        
+        assert authenticated is not None
+        assert authenticated.id == user.id
+        assert authenticated.email == user.email
+    
+    def test_should_return_none_with_incorrect_password(self, db_session):
+        """Deve retornar None com senha incorreta"""
+        user_data = UserRegister(
+            username="authuser2",
+            email="auth2@test.com",
+            password="senha123"
+        )
+        AuthService.create_user(db_session, user_data)
+        
+        authenticated = AuthService.authenticate(db_session, "auth2@test.com", "senhaerrada")
+        
+        assert authenticated is None
+    
+    def test_should_return_none_when_user_does_not_exist(self, db_session):
+        """Deve retornar None quando usuário não existe"""
+        authenticated = AuthService.authenticate(db_session, "naoexiste@test.com", "senha123")
+        
+        assert authenticated is None
