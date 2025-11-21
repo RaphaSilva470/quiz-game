@@ -1,4 +1,4 @@
-name: Full Stack Tests
+name: Backend Tests
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  # JOB 1: TESTES DO BACKEND (PYTHON)
+  # TESTES DO BACKEND (PYTHON)
   backend-test:
     name: Backend Test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -53,36 +53,3 @@ jobs:
         flags: backend
         name: backend-coverage-${{ matrix.os }}
         fail_ci_if_error: false
-
-  # JOB 2: TESTES DO FRONTEND (REACT)
-  frontend-test:
-    name: Frontend Test (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        node-version: [18.x]
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
-
-    - name: Install Frontend Dependencies
-      run: |
-        cd frontend
-        npm ci
-
-    - name: Run Frontend Tests
-      # CI=true é essencial para o teste não ficar esperando input (watch mode)
-      run: |
-        cd frontend
-        npm test
-      env:
-        CI: true

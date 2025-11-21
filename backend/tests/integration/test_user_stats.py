@@ -1,10 +1,12 @@
 import pytest
 from app.models.question import Question
+from app.models.quiz import QuizSession
+from app.models.score import Score
 
-def test_user_stats_after_multiple_quizzes(client, db_session, auth_headers):
-    """Teste E2E: Estatísticas do usuário após múltiplos quizzes"""
-    
-    # Adicionar perguntas
+
+@pytest.fixture
+def stats_questions(db_session):
+    """Fixture: cria perguntas para testes de estatísticas"""
     for i in range(20):
         q = Question(
             text=f"Pergunta {i}?",
@@ -17,8 +19,11 @@ def test_user_stats_after_multiple_quizzes(client, db_session, auth_headers):
         )
         db_session.add(q)
     db_session.commit()
+
+
+def test_user_stats_after_multiple_quizzes(client, db_session, auth_headers, stats_questions):
+    """Teste de integração: Estatísticas do usuário após múltiplos quizzes"""
     
-    # Fazer login para obter user_id
     from app.services.auth_service import AuthService
     user = AuthService.get_user_by_email(db_session, "test@test.com")
     
@@ -46,10 +51,7 @@ def test_user_stats_after_multiple_quizzes(client, db_session, auth_headers):
         
         client.post(f"/api/quiz/{quiz_id}/finish", headers=auth_headers)
     
-    # Verificar que os quizzes foram salvos
-    from app.models.quiz import QuizSession
-    from app.models.score import Score
-    
+    # Verificar estatísticas no banco
     completed_quizzes = db_session.query(QuizSession).filter(
         QuizSession.user_id == user.id,
         QuizSession.is_completed == True
@@ -60,4 +62,3 @@ def test_user_stats_after_multiple_quizzes(client, db_session, auth_headers):
     scores = db_session.query(Score).filter(Score.user_id == user.id).all()
     assert len(scores) == 2
     assert all(s.total_score == 50 for s in scores)  # 5 perguntas * 10 pontos cada
-

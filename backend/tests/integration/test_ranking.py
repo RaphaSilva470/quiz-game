@@ -84,11 +84,14 @@ class TestRankingSystem:
         user0_headers = multiple_users[0]
         user1_headers = multiple_users[1]
         
+        # User0 faz 2 quizzes
         complete_quiz(client, user0_headers)
         complete_quiz(client, user0_headers)
         
+        # User1 faz 1 quiz
         complete_quiz(client, user1_headers)
         
+        # Verificar ranking
         ranking_response = client.get(
             "/api/ranking/global",
             headers=user0_headers
