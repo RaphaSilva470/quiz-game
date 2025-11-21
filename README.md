@@ -39,4 +39,9 @@ pip install -r requirements.txt
 python scripts/seed_questions.py
 uvicorn app.main:app --reload
 
+### 4.2 Configurar o frontend
+(Abra outro terminal)
+cd frontend
+npm start
+
  

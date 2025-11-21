@@ -22,20 +22,36 @@ function LoginPage() {
     e.preventDefault();
     setError('');
 
-    // Validação básica
     if (!formData.email || !formData.password) {
       setError('Por favor, preencha todos os campos');
       return;
     }
 
-    // TODO: Implementar chamada à API de login
     try {
-      // Simulação de login - remover quando implementar API
-      console.log('Login attempt:', formData);
-      // navigate('/dashboard'); // Redirecionar após login bem-sucedido
-      alert('Login funcionalidade será implementada com a API');
+      // --- MUDANÇA AQUI: Verificar no LocalStorage ---
+      
+      // 1. Busca o usuário salvo no registro
+      const storedUser = localStorage.getItem('testUser');
+      
+      if (!storedUser) {
+        setError('Nenhum usuário registrado para teste. Crie uma conta primeiro.');
+        return;
+      }
+
+      const validUser = JSON.parse(storedUser);
+
+      // 2. Verifica se email e senha batem
+      if (formData.email === validUser.email && formData.password === validUser.password) {
+        console.log('Login realizado com sucesso!');
+        // Redirecione para onde quiser (ex: dashboard ou home)
+        navigate('/dashboard'); 
+      } else {
+        setError('Email ou senha incorretos.');
+      }
+      // ------------------------------------------------
+
     } catch (err) {
-      setError('Erro ao fazer login. Verifique suas credenciais.');
+      setError('Erro ao fazer login.');
     }
   };
 

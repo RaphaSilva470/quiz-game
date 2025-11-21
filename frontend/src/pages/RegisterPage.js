@@ -40,19 +40,24 @@ function RegisterPage() {
       return;
     }
 
-    // TODO: Implementar chamada à API de registro
+    // --- AQUI ESTÁ A MUDANÇA QUE FAZ FUNCIONAR ---
     try {
-      // Simulação de registro - remover quando implementar API
-      console.log('Register attempt:', {
+      const userToSave = {
         name: formData.name,
         email: formData.email,
         password: formData.password
-      });
-      // navigate('/login'); // Redirecionar após registro bem-sucedido
-      alert('Registro funcionalidade será implementada com a API');
+      };
+      
+      // Salva no navegador simulando um banco de dados
+      localStorage.setItem('testUser', JSON.stringify(userToSave));
+
+      alert('Conta criada com sucesso! Redirecionando para o login...');
+      navigate('/login'); 
+      
     } catch (err) {
       setError('Erro ao criar conta. Tente novamente.');
     }
+    // ---------------------------------------------
   };
 
   return (
@@ -145,4 +150,3 @@ function RegisterPage() {
 }
 
 export default RegisterPage;
-
