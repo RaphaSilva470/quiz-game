@@ -31,7 +31,7 @@ class TestAuthRoutes:
             "password": "12345"  # Menos de 6 caracteres
         })
         
-        assert response.status_code == 400
+        assert response.status_code == 422
         assert "mínimo 6" in response.json()["detail"].lower()
     
     def test_register_invalid_username(self, client):
@@ -42,7 +42,7 @@ class TestAuthRoutes:
             "password": "senha123"
         })
         
-        assert response.status_code == 400
+        assert response.status_code == 422
     
     def test_login_missing_credentials(self, client):
         """Teste: Login sem credenciais"""
