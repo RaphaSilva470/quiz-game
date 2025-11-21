@@ -5,85 +5,89 @@ from app.schemas.auth import UserRegister
 from app.models.user import User
 
 
-def test_user_exists_returns_true(db_session):
-    """Teste unitário: user_exists retorna True quando usuário existe"""
-    user = User(username="test", email="test@test.com", password_hash="hash")
-    db_session.add(user)
-    db_session.commit()
-    
-    assert AuthService.user_exists(db_session, "test@test.com") == True
-
-
-def test_user_exists_returns_false(db_session):
-    """Teste unitário: user_exists retorna False quando não existe"""
-    assert AuthService.user_exists(db_session, "naoexiste@test.com") == False
-
-
-def test_username_exists_returns_true(db_session):
-    """Teste unitário: username_exists retorna True quando existe"""
-    user = User(username="joao", email="joao@test.com", password_hash="hash")
-    db_session.add(user)
-    db_session.commit()
-    
-    assert AuthService.username_exists(db_session, "joao") == True
-
-
-def test_username_exists_returns_false(db_session):
-    """Teste unitário: username_exists retorna False quando não existe"""
-    assert AuthService.username_exists(db_session, "naoexiste") == False
-
-
-def test_create_user_success(db_session):
-    """Teste unitário: create_user cria usuário com sucesso"""
-    user_data = UserRegister(
-        username="newuser",
-        email="new@test.com",
-        password="senha123"
+@pytest.fixture
+def existing_user(db_session):
+    """Fixture: cria um usuário no banco de dados"""
+    user = User(
+        username="testuser",
+        email="test@test.com",
+        password_hash="hashed_password"
     )
-    
-    user = AuthService.create_user(db_session, user_data)
-    
-    assert user.id is not None
-    assert user.username == "newuser"
-    assert user.email == "new@test.com"
-    assert user.password_hash != "senha123"  # Hash aplicado
-
-
-def test_create_user_duplicate_email_raises_exception(db_session):
-    """Teste unitário: create_user lança exceção para email duplicado"""
-    # Criar primeiro usuário
-    user1 = UserRegister(username="user1", email="same@test.com", password="senha123")
-    AuthService.create_user(db_session, user1)
-    
-    # Tentar criar segundo com mesmo email
-    user2 = UserRegister(username="user2", email="same@test.com", password="senha123")
-    
-    with pytest.raises(HTTPException) as exc_info:
-        AuthService.create_user(db_session, user2)
-    
-    assert exc_info.value.status_code == 400
-    assert "já cadastrado" in exc_info.value.detail.lower()
-
-
-def test_get_user_by_id_returns_user(db_session):
-    """Teste unitário: get_user_by_id retorna usuário quando existe"""
-    user = User(username="test", email="test@test.com", password_hash="hash")
     db_session.add(user)
     db_session.commit()
-    
-    found_user = AuthService.get_user_by_id(db_session, user.id)
-    
-    assert found_user is not None
-    assert found_user.id == user.id
+    db_session.refresh(user)
+    return user
 
 
-def test_get_user_by_email_returns_user(db_session):
-    """Teste unitário: get_user_by_email retorna usuário quando existe"""
-    user = User(username="test", email="test@test.com", password_hash="hash")
-    db_session.add(user)
-    db_session.commit()
+class TestUserExists:
+    """Testes para AuthService.user_exists"""
     
-    found_user = AuthService.get_user_by_email(db_session, "test@test.com")
+    def test_should_return_true_when_user_exists(self, db_session, existing_user):
+        result = AuthService.user_exists(db_session, existing_user.email)
+        assert result is True
     
-    assert found_user is not None
-    assert found_user.email == "test@test.com"
+    def test_should_return_false_when_user_does_not_exist(self, db_session):
+        result = AuthService.user_exists(db_session, "naoexiste@test.com")
+        assert result is False
+
+
+class TestUsernameExists:
+    """Testes para AuthService.username_exists"""
+    
+    def test_should_return_true_when_username_exists(self, db_session, existing_user):
+        result = AuthService.username_exists(db_session, existing_user.username)
+        assert result is True
+    
+    def test_should_return_false_when_username_does_not_exist(self, db_session):
+        result = AuthService.username_exists(db_session, "naoexiste")
+        assert result is False
+
+
+class TestCreateUser:
+    """Testes para AuthService.create_user"""
+    
+    def test_should_create_user_successfully(self, db_session):
+        user_data = UserRegister(
+            username="newuser",
+            email="new@test.com",
+            password="senha123"
+        )
+        
+        user = AuthService.create_user(db_session, user_data)
+        
+        assert user.id is not None
+        assert user.username == "newuser"
+        assert user.email == "new@test.com"
+        assert user.password_hash != "senha123"
+    
+    def test_should_raise_exception_when_email_already_exists(self, db_session):
+        user1 = UserRegister(username="user1", email="same@test.com", password="senha123")
+        AuthService.create_user(db_session, user1)
+        
+        user2 = UserRegister(username="user2", email="same@test.com", password="senha123")
+        
+        with pytest.raises(HTTPException) as exc_info:
+            AuthService.create_user(db_session, user2)
+        
+        assert exc_info.value.status_code == 400
+        assert "já cadastrado" in exc_info.value.detail.lower()
+
+
+class TestGetUserById:
+    """Testes para AuthService.get_user_by_id"""
+    
+    def test_should_return_user_when_exists(self, db_session, existing_user):
+        found_user = AuthService.get_user_by_id(db_session, existing_user.id)
+        
+        assert found_user is not None
+        assert found_user.id == existing_user.id
+
+
+class TestGetUserByEmail:
+    """Testes para AuthService.get_user_by_email"""
+    
+    def test_should_return_user_when_exists(self, db_session, existing_user):
+        found_user = AuthService.get_user_by_email(db_session, existing_user.email)
+        
+        assert found_user is not None
+        assert found_user.email == existing_user.email

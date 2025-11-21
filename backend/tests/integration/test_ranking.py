@@ -1,11 +1,11 @@
 import pytest
 from app.models.question import Question
-from app.models.user import User
 
-def test_ranking_after_multiple_quizzes(client, db_session):
-    """Teste E2E: Ranking após múltiplos quizzes"""
-    
-    # Adicionar perguntas
+
+@pytest.fixture
+def general_questions(db_session):
+    """Fixture: cria 10 perguntas gerais no banco"""
+    questions = []
     for i in range(10):
         q = Question(
             text=f"Pergunta {i}?",
@@ -17,9 +17,15 @@ def test_ranking_after_multiple_quizzes(client, db_session):
             explanation="Explicação"
         )
         db_session.add(q)
-    db_session.commit()
+        questions.append(q)
     
-    # Criar 2 usuários
+    db_session.commit()
+    return questions
+
+
+@pytest.fixture
+def multiple_users(client):
+    """Fixture: cria 2 usuários e retorna seus tokens de autenticação"""
     users = []
     for i in range(2):
         user_data = {
@@ -29,66 +35,68 @@ def test_ranking_after_multiple_quizzes(client, db_session):
         }
         client.post("/api/auth/register", json=user_data)
         
-        response = client.post("/api/auth/login", json={
+        login_response = client.post("/api/auth/login", json={
             "email": user_data["email"],
             "password": user_data["password"]
         })
-        token = response.json()["access_token"]
-        users.append({"headers": {"Authorization": f"Bearer {token}"}})
+        token = login_response.json()["access_token"]
+        users.append({"Authorization": f"Bearer {token}"})
     
-    # User 0 faz 2 quizzes
-    for _ in range(2):
-        response = client.post(
-            "/api/quiz/start",
-            json={"num_questions": 5},
-            headers=users[0]["headers"]
-        )
-        quiz_id = response.json()["quiz_id"]
-        questions = response.json()["questions"]
-        
-        for q in questions:
-            client.post(
-                f"/api/quiz/{quiz_id}/answer",
-                json={"question_id": q["id"], "answer": "A", "time_taken": 3.0},
-                headers=users[0]["headers"]
-            )
-        
-        client.post(
-            f"/api/quiz/{quiz_id}/finish",
-            headers=users[0]["headers"]
-        )
-    
-    # User 1 faz 1 quiz
-    response = client.post(
+    return users
+
+
+def complete_quiz(client, headers, num_questions=5):
+    """Helper: completa um quiz inteiro retornando o resultado"""
+    start_response = client.post(
         "/api/quiz/start",
-        json={"num_questions": 5},
-        headers=users[1]["headers"]
+        json={"num_questions": num_questions},
+        headers=headers
     )
-    quiz_id = response.json()["quiz_id"]
-    questions = response.json()["questions"]
+    quiz_id = start_response.json()["quiz_id"]
+    questions = start_response.json()["questions"]
     
-    for q in questions:
+    for question in questions:
         client.post(
             f"/api/quiz/{quiz_id}/answer",
-            json={"question_id": q["id"], "answer": "A", "time_taken": 3.0},
-            headers=users[1]["headers"]
+            json={
+                "question_id": question["id"],
+                "answer": "A",
+                "time_taken": 3.0
+            },
+            headers=headers
         )
     
-    client.post(
+    finish_response = client.post(
         f"/api/quiz/{quiz_id}/finish",
-        headers=users[1]["headers"]
+        headers=headers
     )
+    return finish_response.json()
+
+
+class TestRankingSystem:
+    """Testes de integração para sistema de ranking"""
     
-    # Verificar ranking
-    response = client.get(
-        "/api/ranking/global",
-        headers=users[0]["headers"]
-    )
-    
-    assert response.status_code == 200
-    ranking = response.json()["ranking"]
-    
-    # User 0 deve estar em primeiro (2 quizzes vs 1)
-    assert len(ranking) == 2
-    assert ranking[0]["username"] == "user0"
-    assert ranking[0]["total_score"] > ranking[1]["total_score"]
+    def test_should_rank_users_by_total_score(
+        self, client, general_questions, multiple_users
+    ):
+        """Ranking deve ordenar usuários por pontuação total acumulada"""
+        
+        user0_headers = multiple_users[0]
+        user1_headers = multiple_users[1]
+        
+        complete_quiz(client, user0_headers)
+        complete_quiz(client, user0_headers)
+        
+        complete_quiz(client, user1_headers)
+        
+        ranking_response = client.get(
+            "/api/ranking/global",
+            headers=user0_headers
+        )
+        
+        assert ranking_response.status_code == 200
+        ranking = ranking_response.json()["ranking"]
+        
+        assert len(ranking) == 2
+        assert ranking[0]["username"] == "user0"
+        assert ranking[0]["total_score"] > ranking[1]["total_score"]

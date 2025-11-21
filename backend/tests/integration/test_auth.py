@@ -1,50 +1,54 @@
 import pytest
 
-def test_register_login_get_me_flow(client):
-    """Teste E2E: Fluxo completo de autenticação"""
-    
-    # 1. Registrar
-    user_data = {
+
+@pytest.fixture
+def valid_user_data():
+    """Fixture: dados válidos de usuário para testes"""
+    return {
         "username": "testuser",
         "email": "test@test.com",
         "password": "senha123"
     }
-    
-    response = client.post("/api/auth/register", json=user_data)
-    assert response.status_code == 201
-    
-    # 2. Login
-    response = client.post("/api/auth/login", json={
-        "email": user_data["email"],
-        "password": user_data["password"]
-    })
-    assert response.status_code == 200
-    token = response.json()["access_token"]
-    
-    # 3. Acessar /me
-    response = client.get(
-        "/api/auth/me",
-        headers={"Authorization": f"Bearer {token}"}
-    )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["email"] == user_data["email"]
-    assert data["username"] == user_data["username"]
 
-def test_invalid_credentials_flow(client):
-    """Teste E2E: Tentativa de login com credenciais inválidas"""
+
+class TestAuthenticationFlow:
+    """Testes de integração para fluxo de autenticação"""
     
-    # Registrar
-    client.post("/api/auth/register", json={
-        "username": "user",
-        "email": "user@test.com",
-        "password": "senha123"
-    })
+    def test_should_complete_full_authentication_flow(self, client, valid_user_data):
+        """Fluxo completo: registro → login → acesso a recurso protegido"""
+        
+        register_response = client.post("/api/auth/register", json=valid_user_data)
+        assert register_response.status_code == 201
+        
+        login_response = client.post("/api/auth/login", json={
+            "email": valid_user_data["email"],
+            "password": valid_user_data["password"]
+        })
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
+        
+        me_response = client.get(
+            "/api/auth/me",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert me_response.status_code == 200
+        
+        user_data = me_response.json()
+        assert user_data["email"] == valid_user_data["email"]
+        assert user_data["username"] == valid_user_data["username"]
     
-    # Tentar login com senha errada
-    response = client.post("/api/auth/login", json={
-        "email": "user@test.com",
-        "password": "senhaerrada"
-    })
-    
-    assert response.status_code == 401
+    def test_should_reject_login_with_invalid_credentials(self, client):
+        """Tentativa de login com credenciais inválidas deve falhar"""
+        
+        client.post("/api/auth/register", json={
+            "username": "user",
+            "email": "user@test.com",
+            "password": "senha123"
+        })
+        
+        response = client.post("/api/auth/login", json={
+            "email": "user@test.com",
+            "password": "senhaerrada"
+        })
+        
+        assert response.status_code == 401
