@@ -53,20 +53,20 @@ class TestCreateAccessToken:
         assert len(token) > 20
 
 
-class TestVerifyToken:
-    """Testes para verify_token"""
+def test_verify_token_valid_token():
+    """Teste unitário: verify_token valida token correto"""
+    user_id = 42
+    token = create_access_token(user_id)
     
-    def test_should_decode_valid_token(self):
-        user_id = 42
-        token = create_access_token(user_id)
-        
-        decoded_id = verify_token(token)
-        
-        assert decoded_id == user_id
+    decoded_id = verify_token(token)
     
-    def test_should_reject_invalid_token(self):
-        invalid_token = "token.invalido.aqui"
-        
-        decoded_id = verify_token(invalid_token)
-        
-        assert decoded_id is None
+    assert decoded_id == user_id
+
+
+def test_verify_token_invalid_token():
+    """Teste unitário: verify_token rejeita token inválido"""
+    invalid_token = "token.invalido.aqui"
+    
+    decoded_id = verify_token(invalid_token)
+    
+    assert decoded_id is None

@@ -42,6 +42,7 @@ uvicorn app.main:app --reload
 ### 4.2 Configurar o frontend
 (Abra outro terminal)
 cd frontend
+npm install
 npm start
 
  

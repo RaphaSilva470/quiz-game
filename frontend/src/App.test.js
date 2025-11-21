@@ -2,8 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+// NÃO precisamos fazer mock do react-router-dom aqui, 
+// pois o App.js já contém o <Router> real.
+
+test('renders Quiz Game title', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  
+  // Procura pelo título "Quiz Game" que está na Landing Page
+  const titleElement = screen.getByText(/quiz game/i);
+  expect(titleElement).toBeInTheDocument();
 });
