@@ -83,7 +83,7 @@ jobs:
       # CI=true é essencial para o teste não ficar esperando input (watch mode)
       run: |
         cd frontend
-        npm test
+        npm test -- --coverage --watchAll=false
       env:
         CI: true
         
