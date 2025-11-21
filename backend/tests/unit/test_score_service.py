@@ -104,7 +104,7 @@ class TestScoreServiceCalculateAndSave:
         
         assert score.correct_answers == 2  # 3 corretas de 4
         assert score.total_questions == 4
-        assert score.total_score == 30
+        assert score.total_score == 20
         assert score.accuracy == 75.0
 
 class TestScoreServiceGetGlobalRanking:

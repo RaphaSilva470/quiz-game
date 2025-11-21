@@ -32,7 +32,7 @@ class TestAuthRoutes:
         })
         
         assert response.status_code == 422
-        assert "mínimo 6" in response.json()["detail"].lower()
+        assert "mínimo 6" in str(response.json()["detail"]).lower()
     
     def test_register_invalid_username(self, client):
         """Teste: Registrar com username inválido"""
