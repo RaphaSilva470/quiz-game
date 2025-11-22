@@ -21,9 +21,9 @@ Funcionalidades principais incluem:
 O objetivo final do sistema é combinar entretenimento e aprendizado, oferecendo uma experiência divertida, educativa e competitiva para os usuários.
  
 
-## 3. Possíveis Tecnologias Utilizadas
+## 3. Tecnologias Utilizadas
 - **Front-end:** React  
-- **Back-end:** Python 3.13, FastAPI, SQLAlchemy, Passlib + Argon2, Pydantic, Python-JOSE
+- **Back-end:** FastAPI (Python 3.13) , Uvicorn, SQLAlchemy, SQLite, Passlib + Argon2, Pydantic, Python-JOSE, Pytest
 
 ## 4.Como Rodar o Backend
 
@@ -31,20 +31,22 @@ O objetivo final do sistema é combinar entretenimento e aprendizado, oferecendo
 Clone o repositório e entre na pasta do backend:
 
 ```bash
-cd quiz_backend
+cd quiz_game/backend
 python -m venv .venv
 source .venv/bin/activate   # Mac/Linux
 .venv\Scripts\activate      # Windows
 pip install -r requirements.txt
+python scripts/init_db.py 
 python scripts/seed_questions.py
 uvicorn app.main:app --reload
-
+```
 ### 4.2 Configurar o frontend
 (Abra outro terminal)
+```bash
 cd frontend
 npm install
 npm start
-
+```
 ### 5. Como rodar os testes localmente
 Dentro de quiz-game/backend rode:
 
