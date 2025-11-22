@@ -45,4 +45,9 @@ cd frontend
 npm install
 npm start
 
- 
+### 5. Como rodar os testes localmente
+Dentro de quiz-game/backend rode:
+
+```bash
+python -m uvicorn app.main:app --reload
+```
