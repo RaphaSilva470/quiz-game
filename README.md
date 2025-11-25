@@ -51,5 +51,5 @@ npm start
 Dentro de quiz-game/backend rode:
 
 ```bash
-python -m uvicorn app.main:app --reload
+python -m pytest tests/ --cov=app --cov-report=term
 ```
